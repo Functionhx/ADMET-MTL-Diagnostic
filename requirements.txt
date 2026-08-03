@@ -1,0 +1,9 @@
+# ADMET-MTL-Diagnostic verified environment
+# Python 3.10, single RTX 4070 Ti SUPER GPU (CUDA 13.0)
+rdkit==2026.03.4
+torch==2.13.0            # cu130 build: pip install torch==2.13.0+cu130 --index-url https://download.pytorch.org/whl/cu130
+scikit-learn
+pandas
+pyarrow
+scipy
+torch-geometric          # required only for the GIN sensitivity analysis (models/b3_gnn_baseline.py)

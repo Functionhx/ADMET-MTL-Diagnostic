@@ -19,7 +19,7 @@ A leakage-controlled diagnostic study of **when and why** hard-sharing multi-tas
 | 2 | **The advantage is temperature-correctable** | Nested per-run temperature calibration attenuates Δ to ≈ 0 under both protocols (Γ_cal = +0.01, p = 0.73) — the gain reflects *raw logit scale*, not ranking information or durable calibration |
 | 3 | **Novelty dependence reverses across protocols** | Declining with novelty under random splitting; rising under scaffold splitting (7/8 endpoints) |
 | 4 | **Cross-task identity exposure is a real failure mode** | Per-endpoint splits let test molecules reach MTL through auxiliary endpoints; global molecule allocation controls it |
-| 5 | **Protocol interaction is cross-architecture** | GNN (GIN) reproduces Γ = +0.07 (MLP: +0.10) — the finding is not fingerprint-MLP-specific |
+| 5 | **Protocol interaction is cross-architecture** | Directionally reproduced in a GIN sensitivity analysis (Γ = +0.07) |
 
 ## 🧪 Experimental Framework
 
@@ -70,8 +70,9 @@ ADMET-MTL-Diagnostic/
 ## 🚀 Quick Start
 
 ```bash
-# 1. Install
-pip install rdkit scikit-learn torch pandas pyarrow
+# 1. Install (verified environment: Python 3.10, RDKit 2026.03.4,
+#    PyTorch 2.13.0+cu130, single RTX 4070 Ti SUPER GPU)
+pip install -r requirements.txt
 
 # 2. Download TDC ADMET datasets
 #    (hERG, AMES, BBB_Martins, Pgp_Broccatelli, CYP2C9/2D6/3A4_Veith, Bioavailability_Ma)
@@ -95,7 +96,7 @@ Split manifests and seeds are fixed in `models/b3_config.py` (5 instances × 3 s
 
 ## 🧠 Method
 
-- **Estimand**: molecule-level log-loss contrast `ΔNLL = NLL_STL − NLL_MTL`, endpoint-macro aggregate, protocol contrast `Γ = Δ_scaffold − Δ_random`
+- **Estimand**: molecule-level log-loss contrast `ΔNLL = NLL_STL − NLL_MTL` (positive favors MTL), endpoint-macro aggregate, protocol contrast `Γ = Δ_scaffold − Δ_random`
 - **Leakage control**: global molecule allocation — a test molecule cannot appear in any auxiliary endpoint's training partition
 - **Calibration**: nested per-run temperature scaling (fitted on calibration partition, applied to test partition), per endpoint / split / seed / protocol / model
 - **Novelty axis**: target-relative novelty = 1 − max Tanimoto to the *target endpoint's* training molecules
