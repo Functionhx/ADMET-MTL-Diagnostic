@@ -1,6 +1,6 @@
 # ADMET-MTL-Diagnostic
 
-**Evaluation Protocols Determine the Apparent Benefits of Hard-Sharing Multi-Task Learning in ADMET Prediction**
+**A Leakage-Controlled Diagnostic Study of How Evaluation Protocols Shape the Apparent Benefits of Hard-Sharing Multi-Task Learning in ADMET Prediction**
 
 A leakage-controlled diagnostic study of **when and why** hard-sharing multi-task learning (MTL) helps ADMET prediction — and when it doesn't.
 
@@ -19,7 +19,7 @@ A leakage-controlled diagnostic study of **when and why** hard-sharing multi-tas
 | 2 | **The advantage is temperature-correctable** | Nested per-run temperature calibration attenuates Δ to ≈ 0 under both protocols (Γ_cal = +0.01, p = 0.73) — the gain reflects *raw logit scale*, not ranking information or durable calibration |
 | 3 | **Novelty dependence reverses across protocols** | Declining with novelty under random splitting; rising under scaffold splitting (7/8 endpoints) |
 | 4 | **Cross-task identity exposure is a real failure mode** | Per-endpoint splits let test molecules reach MTL through auxiliary endpoints; global molecule allocation controls it |
-| 5 | **Protocol interaction is cross-architecture** | Directionally reproduced in a GIN sensitivity analysis (Γ = +0.07) |
+| 5 | **Protocol interaction is cross-architecture** | Reproduced with a GIN at matched scale (5 instances × 3 seeds): Γ = +0.026, bootstrap 95% CI [+0.007, +0.046] — direction not representation-specific |
 
 ## 🧪 Experimental Framework
 
@@ -105,7 +105,7 @@ Split manifests and seeds are fixed in `models/b3_config.py` (5 instances × 3 s
 
 ```bibtex
 @misc{admet_mtl_diagnostic_2026,
-  title = {Evaluation Protocols Determine the Apparent Benefits of Hard-Sharing Multi-Task Learning in ADMET Prediction},
+  title = {A Leakage-Controlled Diagnostic Study of How Evaluation Protocols Shape the Apparent Benefits of Hard-Sharing Multi-Task Learning in ADMET Prediction},
   author = {Functionhx},
   year = {2026},
   howpublished = {GitHub repository},
