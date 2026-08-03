@@ -70,7 +70,7 @@ ADMET-MTL-Diagnostic/
 ## 🚀 Quick Start
 
 ```bash
-# 1. Install (verified environment: Python 3.10, RDKit 2026.03.4,
+# 1. Install (verified environment: Python 3.10, RDKit 2023.09.6,
 #    PyTorch 2.13.0+cu130, single RTX 4070 Ti SUPER GPU)
 pip install -r requirements.txt
 

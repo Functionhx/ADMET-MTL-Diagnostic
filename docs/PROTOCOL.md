@@ -75,7 +75,7 @@ contrast; secondary analyses are labeled exploratory.
 ## 7. Reproducibility
 
 - Environment pinned: Python 3.10, PyTorch 2.13.0 (CUDA 13.0 build),
-  RDKit 2026.03.4, single NVIDIA RTX 4070 Ti SUPER.
+  RDKit 2023.09.6, single NVIDIA RTX 4070 Ti SUPER.
 - Split and seed lists, and their hashes, are recorded in `splits/`.
 - All prediction tables and per-molecule contrasts are released under
   `results/`; analysis scripts under `analysis/`.
