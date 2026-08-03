@@ -19,6 +19,7 @@ A leakage-controlled diagnostic study of **when and why** hard-sharing multi-tas
 | 2 | **The advantage is temperature-correctable** | Nested per-run temperature calibration attenuates Δ to ≈ 0 under both protocols (Γ_cal = +0.01, p = 0.73) — the gain reflects *raw logit scale*, not ranking information or durable calibration |
 | 3 | **Novelty dependence reverses across protocols** | Declining with novelty under random splitting; rising under scaffold splitting (7/8 endpoints) |
 | 4 | **Cross-task identity exposure is a real failure mode** | Per-endpoint splits let test molecules reach MTL through auxiliary endpoints; global molecule allocation controls it |
+| 5 | **Protocol interaction is cross-architecture** | GNN (GIN) reproduces Γ = +0.07 (MLP: +0.10) — the finding is not fingerprint-MLP-specific |
 
 ## 🧪 Experimental Framework
 
