@@ -118,7 +118,7 @@ ADMET-MTL-Diagnostic/
 - **Deviations** from the development design: `protocol/deviations.md`
 - **Post hoc analyses** (labeled exploratory): `protocol/posthoc_analyses.md`
 - **Environment pinned**: `requirements.txt` (Python 3.10, PyTorch 2.13.0+cu130, RDKit 2023.09.6)
-- **Frozen snapshot**: [release v1.0.0](https://github.com/Functionhx/ADMET-MTL-Diagnostic/releases/tag/v1.0.0)
+- **Frozen snapshot**: [release v1.0.0](https://github.com/Functionhx/ADMET-MTL-Diagnostic/releases/tag/v1.0.0) · [![DOI](https://zenodo.org/badge/1321187326.svg)](https://doi.org/10.5281/zenodo.21772294)
 
 ## 📄 Citation
 
@@ -128,7 +128,8 @@ ADMET-MTL-Diagnostic/
   author = {Fan, Yuchen},
   year = {2026},
   howpublished = {GitHub repository},
-  url = {https://github.com/Functionhx/ADMET-MTL-Diagnostic}
+  url = {https://github.com/Functionhx/ADMET-MTL-Diagnostic},
+  doi = {10.5281/zenodo.21772295}
 }
 ```
 
