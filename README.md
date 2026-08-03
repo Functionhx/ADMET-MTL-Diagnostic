@@ -15,11 +15,11 @@ A leakage-controlled diagnostic study of **when and why** hard-sharing multi-tas
 
 | # | Finding | Result |
 |---|---------|--------|
-| 1 | **MTL advantage is protocol-dependent** | Log-loss contrast Δ = +0.321 (random) vs +0.402 (scaffold); **Γ = +0.081**, paired t₇ = 2.65 (p = 0.033), molecule-cluster bootstrap 95% CI [+0.079, +0.083], leave-one-endpoint-out +0.069–+0.096 (6/8 endpoints positive, small-endpoint driven) |
+| 1 | **MTL advantage is protocol-dependent** | Log-loss contrast Δ = +0.321 (random) vs +0.402 (scaffold); **Γ = +0.081**, paired t₇ = 2.65 (p = 0.033); uncertainty layers: molecule-level CI [+0.079, +0.083], split-instance block CI [+0.048, +0.112], endpoint-resample CI [+0.026, +0.138] (all exclude zero); leave-one-endpoint-out +0.069–+0.096 (6/8 endpoints positive, small-endpoint concentrated) |
 | 2 | **The advantage is temperature-correctable** | Strict per-model temperature calibration (T fitted on each model's own 10% calibration partition, applied to its own test partition) attenuates Δ to ≈ 0 under both protocols (Δ_cal = −0.003 / +0.003, Γ_cal = +0.006, p = 0.45) — the gain reflects *raw logit scale*, not ranking information or durable calibration |
 | 3 | **No systematic novelty dependence under the confirmatory design** | Flat under both protocols at 5 instances × 3 seeds; an apparent reversal in a 3-instance development analysis did not survive the larger design |
 | 4 | **Cross-task identity exposure is a real failure mode** | Per-endpoint splits let test molecules reach MTL through auxiliary endpoints; global molecule allocation controls it |
-| 5 | **Protocol interaction is cross-architecture** | Reproduced with a GIN at matched scale (5 instances × 3 seeds): Γ = +0.026, bootstrap 95% CI [+0.007, +0.046] — direction not representation-specific |
+| 5 | **Protocol interaction is cross-architecture** | Positive direction reproduced in a matched-scale GIN sensitivity analysis (5 instances × 3 seeds): Γ = +0.026, bootstrap 95% CI [+0.007, +0.046] |
 
 ## 🧪 Experimental Framework
 
