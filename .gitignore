@@ -1,5 +1,17 @@
+# logs and caches
+*.log
 __pycache__/
 *.pyc
-data/*.csv
-data/*.parquet
-*.log
+.ipynb_checkpoints/
+nohup.out
+
+# local outputs
+b3_main_out/
+b3_v2_out/
+b3_controls_out/
+b3_controls_v2_out/
+b3_stl8x_out/
+c1_*/
+pilot_*/
+models/esm2_8m/
+data/tdc_cache_*/

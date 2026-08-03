@@ -23,7 +23,7 @@ from b3_config import *
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'device: {DEVICE}', flush=True)
-N_INSTANCES = 2  # reduced for GNN speed
+N_INSTANCES = 5  # matched to MLP (5 instances x 3 seeds)
 OUT_DIR = os.path.join(os.path.dirname(__file__), 'b3_main_out')
 
 ATOM_FEAT = 20  # atomic number one-hot up to 20 + degree + aromatic

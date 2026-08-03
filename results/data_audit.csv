@@ -1,0 +1,9 @@
+endpoint,n_raw,n_parse_fail,n_conflicting_mols,n_after_dedup
+hERG,655,0,3,648
+AMES,7278,0,0,7255
+BBB_Martins,2030,0,10,1975
+Pgp_Broccatelli,1218,0,0,1212
+CYP2C9_Veith,12092,0,0,12092
+CYP2D6_Veith,13130,0,0,13130
+CYP3A4_Veith,12328,0,0,12328
+Bioavailability_Ma,640,0,0,640
