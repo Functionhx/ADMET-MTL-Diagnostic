@@ -17,7 +17,7 @@ confirmatory statistics and reported separately as a contaminated stress test.
   hERG, AMES, BBB_Martins, Pgp_Broccatelli, CYP2C9_Veith, CYP2D6_Veith,
   CYP3A4_Veith, Bioavailability_Ma.
 - Canonicalization: RDKit canonical-SMILES round-trip
-  (`MolFromSmiles`/`MolToSmiles`) under a fixed RDKit version (2026.03.4);
+  (`MolFromSmiles`/`MolToSmiles`) under a fixed RDKit version (2023.09.6);
   rows failing canonicalization are dropped; rows sharing a canonical SMILES
   are deduplicated keeping the first occurrence (frozen rule, identical in
   development and confirmatory pipelines). Conflict statistics are reported
