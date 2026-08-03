@@ -1,6 +1,6 @@
 # ADMET-MTL-Diagnostic
 
-**A Leakage-Controlled Diagnostic of Protocol- and Calibration-Sensitive Multi-Task Gains in ADMET Prediction**
+**Evaluation Protocol, Checkpointing, and Calibration Shape Apparent Multi-Task Gains in ADMET Prediction**
 
 A leakage-controlled diagnostic study of **when and why** hard-sharing multi-task learning (MTL) helps ADMET prediction — and when it doesn't.
 
@@ -124,7 +124,7 @@ ADMET-MTL-Diagnostic/
 
 ```bibtex
 @misc{admet_mtl_diagnostic_2026,
-  title = {A Leakage-Controlled Diagnostic of Protocol- and Calibration-Sensitive Multi-Task Gains in ADMET Prediction},
+  title = {Evaluation Protocol, Checkpointing, and Calibration Shape Apparent Multi-Task Gains in ADMET Prediction},
   author = {Fan, Yuchen},
   year = {2026},
   howpublished = {GitHub repository},
