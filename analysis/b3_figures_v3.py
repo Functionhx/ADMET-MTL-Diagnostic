@@ -22,55 +22,73 @@ FIG = '/home/as/vllm/cell/paper/figures'
 import matplotlib as mpl
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
-plt.rcParams.update({'font.size': 8, 'axes.labelsize': 8, 'legend.fontsize': 7})
+plt.rcParams.update({'font.size': 9.5, 'axes.labelsize': 9.5, 'legend.fontsize': 8.5})
 
 
 def fig1_framework():
-    """Three-layer horizontal framework: data -> allocation -> models -> four outputs."""
-    fig, ax = plt.subplots(figsize=(7, 3.0))
+    """Horizontal causal chain: raw finding -> checkpoint -> calibration -> controls -> GIN,
+    with measured box extents so no text is clipped and arrows connect actual box edges."""
+    fig, ax = plt.subplots(figsize=(8.8, 3.6))
     ax.axis('off')
-    b_data = dict(boxstyle='round,pad=0.4', facecolor='#F0F7F0', edgecolor='#55A868', lw=1.2)
-    b_alloc = dict(boxstyle='round,pad=0.4', facecolor='#EAF0F6', edgecolor='#4C72B0', lw=1.2)
-    b_model = dict(boxstyle='round,pad=0.4', facecolor='#FDF3E7', edgecolor='#DD8452', lw=1.2)
-    b_out = dict(boxstyle='round,pad=0.4', facecolor='#F7F2F7', edgecolor='#8172B3', lw=1.2)
+    b_main = dict(boxstyle='round,pad=0.3', facecolor='#EAF0F6', edgecolor='#4C72B0', lw=1.2)
+    b_find = dict(boxstyle='round,pad=0.3', facecolor='#FDF3E7', edgecolor='#DD8452', lw=1.2)
+    b_diag = dict(boxstyle='round,pad=0.3', facecolor='#F0F7F0', edgecolor='#55A868', lw=1.2)
+    b_sec = dict(boxstyle='round,pad=0.3', facecolor='#F2F2F2', edgecolor='#AAAAAA', lw=0.9)
+    fig.canvas.draw()
+    rend = fig.canvas.get_renderer()
+    inv = ax.transData.inverted()
+    ext = {}
 
-    def draw(x, y, text, b, fs=7.5, w=1.0):
-        ax.text(x, y, text, ha='center', va='center', fontsize=fs, bbox=b)
+    def add(x, y, text, style, fs=8.5, key=None):
+        t_ = ax.text(0, 0, text, ha='center', va='center', fontsize=fs, bbox=style)
+        bb = t_.get_window_extent(renderer=rend)
+        (x0, y0), (x1, y1) = inv.transform((bb.x0, bb.y0)), inv.transform((bb.x1, bb.y1))
+        w, h = x1 - x0, y1 - y0
+        t_.set_position((x, y))
+        ext[key or text] = (x - w / 2, x + w / 2, y - h / 2, y + h / 2)
+        return w, h
 
     def arrow(x1, y1, x2, y2):
         ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle='-|>',
-                                     mutation_scale=9, color='#555555', lw=1.1))
+                                     mutation_scale=11, color='#555555', lw=1.2))
 
-    # layer 1: data
-    draw(0.5, 0.86, 'Eight binary ADMET endpoints (TDC)\ncanonical-SMILES round-trip, dedup rule', b_data, w=1.9)
-    arrow(0.5, 0.70, 0.5, 0.58)
-    # layer 2: global allocation
-    draw(0.5, 0.46, 'Global allocation: 70% train / 10% calibration / 20% test\n'
-                    'random (molecule)  vs  scaffold-grouped\n'
-                    '5 split instances x 3 seeds (no cross-task identity exposure)', b_alloc, w=1.9)
-    arrow(0.5, 0.30, 0.5, 0.18)
-    # layer 3: models
-    draw(0.5, 0.08, 'Hard-sharing MTL (task-balanced)\nvs architecture-matched STL', b_model, w=1.3)
-    arrow(0.28, -0.06, 0.17, -0.18); arrow(0.50, -0.06, 0.50, -0.18); arrow(0.72, -0.06, 0.83, -0.18)
-    # layer 4: four outputs
-    draw(0.17, -0.30, 'Positive protocol\ncontrast (Gamma = +0.081)', b_out, w=0.62)
-    draw(0.50, -0.30, 'Same-model\ncalibration: raw advantage\nattenuated after calibration', b_out, w=0.62)
-    draw(0.83, -0.30, 'Mechanism\ncontrols\n(label-permuted)', b_out, w=0.62)
-    arrow(0.17, -0.42, 0.17, -0.54)
-    draw(0.17, -0.62, 'Matched-scale GIN\nsensitivity (Gamma = +0.026)', b_out, w=0.62)
-    arrow(0.83, -0.42, 0.83, -0.54)
-    draw(0.83, -0.62, 'Novelty: flat\n(3-instance reversal spurious)', b_out, w=0.62)
-    ax.set_xlim(0, 1); ax.set_ylim(-0.78, 1.02)
+    # Main chain (top row, left to right)
+    add(0.13, 0.72, 'Leakage-controlled\nMTL vs STL\n(8 TDC endpoints, 70/10/20)', b_main, key='A')
+    add(0.50, 0.72, 'Raw finding:\nMTL gain larger\nunder scaffold split', b_find, key='B')
+    # Right column diagnostics (top to bottom)
+    add(0.87, 0.72, 'Checkpoint rule:\nvalidation-selected reverses\nabsolute contrast,\nmean Gamma positive', b_diag, key='C')
+    add(0.87, 0.34, 'Calibration:\nper-model T attenuates\nproper-score differences', b_diag, key='D')
+    add(0.87, -0.04, 'Label permutation +\nSTL-8x: gain survives\npermutation, not budget', b_diag, key='E')
+    add(0.50, -0.28, 'Cross-architecture:\nGIN directionally supportive', b_diag, fs=8, key='F')
+    # Secondary analyses (grey, bottom-left)
+    add(0.13, 0.12, 'Secondary analyses:\nnovelty (flat) / downsampling /\npartition geometry / top-k decision', b_sec, fs=7.5, key='G')
+    add(0.13, -0.12, 'Dev analyses excluded;\nplan frozen (protocol/)', b_sec, fs=7.5, key='H')
+
+    # Arrows between measured box edges
+    e = lambda k: ext[k]
+    arrow(e('A')[1] + 0.012, 0.72, e('B')[0] - 0.012, 0.72)
+    arrow(e('B')[1] + 0.012, 0.72, e('C')[0] - 0.012, 0.72)
+    arrow(0.87, e('C')[3] - 0.012, 0.87, e('D')[2] + 0.012)
+    arrow(0.87, e('D')[3] - 0.012, 0.87, e('E')[2] + 0.012)
+    arrow(e('E')[1] - 0.015, e('E')[3], e('F')[0] + 0.015, e('F')[2])
+
+    allx = [ext[k][0] for k in ext] + [ext[k][1] for k in ext]
+    ally = [ext[k][2] for k in ext] + [ext[k][3] for k in ext]
+    ax.set_xlim(min(allx) - 0.02, max(allx) + 0.02)
+    ax.set_ylim(min(ally) - 0.05, max(ally) + 0.05)
     fig.tight_layout()
     fig.savefig(f'{FIG}/fig1_framework.pdf')
     plt.close(fig)
-    print('fig1_framework saved')
+    print('fig1_framework (measured layout) saved')
 
 
 def fig2_merged(r, s, ci_csv, ge_csv):
-    """Merged two-panel: (A) per-endpoint Delta with CIs; (B) Gamma_e forest with CIs."""
+    """Merged two-panel: (A) per-endpoint Delta with molecule-cluster CIs;
+    (B) per-endpoint Gamma_e forest with split-instance bootstrap CIs
+    (seeds averaged within each split; the split, not the split-seed run,
+    is the independent uncertainty unit because seeds share the test set)."""
     ci = pd.read_csv(ci_csv) if ci_csv else None
-    ge = pd.read_csv(ge_csv) if ge_csv else None
+    rng = np.random.RandomState(7)
     ep_disp = {'hERG': 'hERG', 'AMES': 'AMES', 'BBB_Martins': 'BBB Martins',
                'Pgp_Broccatelli': 'P-gp Broccatelli', 'CYP2C9_Veith': 'CYP2C9 Veith',
                'CYP2D6_Veith': 'CYP2D6 Veith', 'CYP3A4_Veith': 'CYP3A4 Veith',
@@ -80,60 +98,61 @@ def fig2_merged(r, s, ci_csv, ge_csv):
                        'Bioavailability_Ma'] if e in r.endpoint.unique()]
     ytick_labs = [ep_disp[e] for e in eps]
     y = np.arange(len(eps))[::-1]
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), sharey=True,
+    fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.2), sharey=True,
                              gridspec_kw={'width_ratios': [1.6, 1]})
     axA, axB = axes
     for i, (ep, yi) in enumerate(zip(eps, y)):
-        m_r = r[r.endpoint == ep].d.mean()
-        m_s = s[s.endpoint == ep].d.mean()
-        lo_r, hi_r = None, None
+        sub_r = r[r.endpoint == ep]; sub_s = s[s.endpoint == ep]
+        m_r = sub_r.d.mean(); m_s = sub_s.d.mean()
+        lo_r = hi_r = lo_s = hi_s = None
         if ci is not None:
             row = ci[(ci.endpoint == ep) & (ci.protocol == 'random')]
             if len(row): lo_r, hi_r = row.ci_lo.iloc[0], row.ci_hi.iloc[0]
-        lo_s, hi_s = None, None
-        if ci is not None:
             row = ci[(ci.endpoint == ep) & (ci.protocol == 'scaffold')]
             if len(row): lo_s, hi_s = row.ci_lo.iloc[0], row.ci_hi.iloc[0]
         if lo_r is not None:
-            axA.errorbar(m_r, yi + 0.18, xerr=[[m_r - lo_r], [hi_r - m_r]], fmt='o', ms=4,
+            axA.errorbar(m_r, yi + 0.18, xerr=[[m_r - lo_r], [hi_r - m_r]], fmt='o', ms=5,
                          color='#4C72B0', capsize=2, label='random' if i == 0 else None)
         else:
-            axA.plot(m_r, yi + 0.18, 'o', ms=4, color='#4C72B0', label='random' if i == 0 else None)
+            axA.plot(m_r, yi + 0.18, 'o', ms=5, color='#4C72B0', label='random' if i == 0 else None)
         if lo_s is not None:
-            axA.errorbar(m_s, yi - 0.18, xerr=[[m_s - lo_s], [hi_s - m_s]], fmt='s', ms=4,
+            axA.errorbar(m_s, yi - 0.18, xerr=[[m_s - lo_s], [hi_s - m_s]], fmt='s', ms=5,
                          color='#DD8452', capsize=2, label='scaffold' if i == 0 else None)
         else:
-            axA.plot(m_s, yi - 0.18, 's', ms=4, color='#DD8452', label='scaffold' if i == 0 else None)
-        G = m_s - m_r
-        gl, gh = None, None
-        if ge is not None:
-            row = ge[ge.endpoint == ep]
-            if len(row): gl, gh = row.ci_lo.iloc[0], row.ci_hi.iloc[0]
-        if gl is not None:
-            axB.errorbar(G, yi, xerr=[[G - gl], [gh - G]], fmt='o', ms=4,
-                         color='#C44E52', capsize=2)
-        else:
-            axB.plot(G, yi, 'o', ms=5, color='#C44E52')
+            axA.plot(m_s, yi - 0.18, 's', ms=5, color='#DD8452', label='scaffold' if i == 0 else None)
+        # Panel B: split-level Gamma_e (seeds averaged within split), split-instance bootstrap
+        g_r = sub_r.groupby('inst').d.mean()
+        g_s = sub_s.groupby('inst').d.mean()
+        g_e = (g_s - g_r).values
+        G = g_e.mean()
+        boots = []
+        for _ in range(3000):
+            idx = rng.choice(len(g_e), len(g_e), replace=True)
+            boots.append(g_e[idx].mean())
+        gl, gh = np.percentile(boots, [2.5, 97.5])
+        axB.errorbar(G, yi, xerr=[[G - gl], [gh - G]], fmt='o', ms=5,
+                     color='#C44E52', capsize=2)
     axA.axvline(0, color='black', lw=0.8)
     axB.axvline(0, color='black', lw=0.8)
     Gmean = (s.groupby('endpoint').d.mean() - r.groupby('endpoint').d.mean()).mean()
     axB.axvline(Gmean, color='#C44E52', ls='--', lw=1,
                 label=f'mean Γ = {Gmean:+.3f}')
-    axA.set_yticks(y); axA.set_yticklabels(ytick_labs, fontsize=6.5)
+    axA.set_yticks(y); axA.set_yticklabels(ytick_labs, fontsize=8)
     axA.set_xlabel(r'$\Delta$NLL = NLL$_{STL}$ − NLL$_{MTL}$')
-    axA.set_title('(A) Per-endpoint contrast', fontsize=8.5)
-    axA.legend(frameon=False, fontsize=6.5)
+    axA.set_title('(A) Per-endpoint contrast', fontsize=10)
+    axA.legend(frameon=False, fontsize=8)
     axB.set_xlabel('Γ$_e$ = Δ$_{scaf}$ − Δ$_{rand}$')
-    axB.set_title('(B) Protocol interaction (forest)', fontsize=8.5)
-    axB.legend(frameon=False, fontsize=6.5)
+    axB.set_title('(B) Protocol interaction (forest)', fontsize=10)
+    axB.legend(frameon=False, fontsize=8)
     fig.tight_layout()
     fig.savefig(f'{FIG}/fig2_forest.pdf')
     plt.close(fig)
-    print('fig2_forest (merged, forest CI) saved')
+    print('fig2_forest (split-instance forest CI) saved')
 
 
 def fig3_novelty_forest(r, s):
-    """Novelty slopes per endpoint (8 endpoints), per protocol + CI."""
+    """Novelty slopes per endpoint (8 endpoints), per protocol + CI.
+    Slope bootstrap resamples split instances (seeds averaged within split)."""
     rows = []
     for df, tag in [(r, 'random'), (s, 'scaffold')]:
         for ep, g in df.groupby('endpoint'):
@@ -142,14 +161,13 @@ def fig3_novelty_forest(r, s):
             b = g.groupby('bin').d.mean()
             x = g.groupby('bin').novelty.median()
             slope = np.polyfit(x.values, b.values, 1)[0]
-            # bootstrap slope CI over (inst, seed) units
+            # bootstrap slope CI over split instances (units = splits)
             slopes_b = []
             rng = np.random.RandomState(hash(ep + tag) % 2**31)
-            units = g.groupby(['inst', 'seed']).size()
-            for _ in range(300):
-                idx = rng.choice(len(units), len(units), replace=True)
-                sub = g[g.groupby(['inst', 'seed']).ngroup().isin(
-                    g.groupby(['inst', 'seed']).ngroup().unique()[idx])]
+            insts = g.inst.unique()
+            for _ in range(1000):
+                chosen = rng.choice(insts, len(insts), replace=True)
+                sub = g[g.inst.isin(chosen)]
                 sb = sub.copy(); sb['bin'] = pd.qcut(sb['novelty'], 6, labels=False, duplicates='drop')
                 bb = sb.groupby('bin').d.mean(); xx = sb.groupby('bin').novelty.median()
                 if len(bb) >= 3:
@@ -164,17 +182,17 @@ def fig3_novelty_forest(r, s):
     eps = r.endpoint.unique()
     y_r = np.arange(len(eps))[::-1] + 0.15
     y_s = np.arange(len(eps))[::-1] - 0.15
-    fig, ax = plt.subplots(figsize=(4.6, 3.0))
+    fig, ax = plt.subplots(figsize=(4.8, 3.2))
     for i, ep in enumerate(eps):
         rr = d[(d.endpoint == ep) & (d.protocol == 'random')]
         ss = d[(d.endpoint == ep) & (d.protocol == 'scaffold')]
         ax.errorbar(rr.slope.iloc[0], y_r[i],
                     xerr=[[rr.slope.iloc[0] - rr.ci_lo.iloc[0]], [rr.ci_hi.iloc[0] - rr.slope.iloc[0]]],
-                    fmt='o', ms=4, color='#4C72B0', capsize=2,
+                    fmt='o', ms=5, color='#4C72B0', capsize=2,
                     label='random' if i == 0 else None)
         ax.errorbar(ss.slope.iloc[0], y_s[i],
                     xerr=[[ss.slope.iloc[0] - ss.ci_lo.iloc[0]], [ss.ci_hi.iloc[0] - ss.slope.iloc[0]]],
-                    fmt='s', ms=4, color='#DD8452', capsize=2,
+                    fmt='s', ms=5, color='#DD8452', capsize=2,
                     label='scaffold' if i == 0 else None)
     ax.axvline(0, color='black', lw=0.8)
     ep_disp = {'hERG': 'hERG', 'AMES': 'AMES', 'BBB_Martins': 'BBB Martins',
@@ -182,10 +200,10 @@ def fig3_novelty_forest(r, s):
                'CYP2D6_Veith': 'CYP2D6 Veith', 'CYP3A4_Veith': 'CYP3A4 Veith',
                'Bioavailability_Ma': 'Bioavailability Ma'}
     ax.set_yticks(np.arange(len(eps)))
-    ax.set_yticklabels([ep_disp.get(e, e) for e in eps], fontsize=6.5)
+    ax.set_yticklabels([ep_disp.get(e, e) for e in eps], fontsize=8)
     ax.set_xlabel('within-endpoint novelty slope (binned ΔNLL per unit novelty)')
-    ax.legend(frameon=False, fontsize=6.5)
-    ax.set_title('Endpoint-level novelty slopes under both protocols', fontsize=8.5)
+    ax.legend(frameon=False, fontsize=8)
+    ax.set_title('Endpoint-level novelty slopes under both protocols', fontsize=10)
     fig.tight_layout()
     fig.savefig(f'{FIG}/fig4_novelty.pdf')
     plt.close(fig)
@@ -212,10 +230,10 @@ def fig4_paired_calibration(r, s):
             ax.plot([i, i + 1], [raw.mean(), cal.mean()], color='black', lw=2,
                     label='endpoint mean')
         ax.axhline(0, color='black', lw=0.8)
-        ax.set_xticks([0, 1]); ax.set_xticklabels(['raw', 'calibrated'], fontsize=7)
-        ax.set_xlabel(xlab, fontsize=7)
-        ax.set_title(title, fontsize=8.5)
-        ax.legend(frameon=False, fontsize=6)
+        ax.set_xticks([0, 1]); ax.set_xticklabels(['raw', 'calibrated'], fontsize=8.5)
+        ax.set_xlabel(xlab, fontsize=9)
+        ax.set_title(title, fontsize=10)
+        ax.legend(frameon=False, fontsize=8)
     axes[0].set_ylabel(r'$\Delta$NLL = NLL$_{STL}$ − NLL$_{MTL}$')
     fig.tight_layout()
     fig.savefig(f'{FIG}/fig5_calibration.pdf')
@@ -224,50 +242,104 @@ def fig4_paired_calibration(r, s):
 
 
 def fig5_mechanism():
-    """Mechanism estimation plot: STL 0 / MTL / shuffled / pooled with split points."""
-    import os as _os
+    """Two-panel mechanism figure:
+    (A) random-protocol controls (STL-8x / MTL / permuted / pooled vs STL),
+        split-level points (seeds averaged within split), no run-level CIs;
+    (B) protocol interaction under real vs permuted labels, 3 paired split-level
+        values (no bootstrap: seeds share the test set and only 3 splits exist)."""
+    v2 = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_v2_out/b3_v2_random_di.parquet')
+    stl8x = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_stl8x_out/stl8x_di.parquet')
+    stl8x = stl8x[stl8x.seed.isin(v2.seed.unique())]
+    stl8x = stl8x.merge(v2[['inst', 'seed', 'endpoint', 'mol', 'y', 'p_stl']],
+                        on=['inst', 'seed', 'endpoint', 'mol', 'y'], how='left')
+    pooled = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_v2_out/pooled_v2_di.parquet')
+    pooled = pooled.merge(v2[['inst', 'seed', 'endpoint', 'mol', 'p_stl']],
+                         on=['inst', 'seed', 'endpoint', 'mol'], how='left')
     c = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_v2_out/control_v2_di.parquet')
-    v1 = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_out/control_di.parquet')
-    c = c.merge(v1[['inst', 'seed', 'endpoint', 'mol', 'y', 'p_stl', 'p_mtl']],
+    c = c.merge(v2[['inst', 'seed', 'endpoint', 'mol', 'y', 'p_stl', 'p_mtl']],
                 on=['inst', 'seed', 'endpoint', 'mol', 'y'], how='left')
-    configs = [('Standard MTL', 'p_mtl'), ('Label-permuted MTL', 'p_mtl_shuff'),
-               ('Pooled pretrain + STL', 'p_mtl_pooled')]
-    # pooled 来自 v1（p_mtl_pooled 不在 merge 后）——重新读取
-    c1 = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_out/control_di.parquet')
+
     def nll(y, p):
         eps = 1e-7
         return -(y * np.log(np.clip(p, eps, 1)) + (1 - y) * np.log(np.clip(1 - p, eps, 1)))
-    fig, ax = plt.subplots(figsize=(4.6, 3.0))
-    xs = [0, 1, 2]
-    rng = np.random.RandomState(0)
-    # MTL + shuffled 从 merged (target-specific)；pooled 从 v1
-    pooled = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_out/control_di.parquet')
-    for x, (tag, col, src) in zip(xs, [('Standard MTL', 'p_mtl', c),
-                                       ('Label-permuted MTL', 'p_mtl_shuff', c),
-                                       ('Pooled pretrain + STL', 'p_mtl_pooled', pooled)]):
-        d_all = []
-        for (inst, seed), g in src.groupby(['inst', 'seed']):
-            d = g.apply(lambda r_: nll(r_['y'], r_['p_stl']).mean() -
-                        nll(r_['y'], r_[col]).mean(), axis=1)
-            d_all.append(d.mean())
-        d_all = np.array(d_all)
-        jit = rng.uniform(-0.08, 0.08, len(d_all))
-        ax.scatter(x + jit, d_all, s=8, color='#999999', alpha=0.7, zorder=2)
-        ax.errorbar(x, d_all.mean(), yerr=1.96 * d_all.std() / np.sqrt(len(d_all)),
-                    fmt='o', ms=8, color='#C44E52', capsize=3, zorder=3)
-        ax.annotate(f'{d_all.mean():+.3f}', (x, d_all.mean()),
-                    xytext=(0, 8), textcoords='offset points', ha='center',
-                    fontsize=7.5, color='#C44E52')
-    ax.axhline(0, color='black', lw=0.8, ls='--')
-    ax.set_xticks(xs)
-    ax.set_xticklabels(['Standard\nMTL', 'Label-permuted\nMTL', 'Pooled pretrain\n+ STL'], fontsize=7)
-    ax.set_ylabel(r'$\Delta$NLL vs STL (positive favors config)')
-    ax.set_title('Fully permuted auxiliary labels leave the gain intact', fontsize=8.5)
-    ax.set_ylim(-0.15, 0.42)
+
+    def split_means(src, col, stl_col='p_stl'):
+        """Endpoint-macro contrast per split (seeds averaged within split)."""
+        vals = []
+        for inst, g in src.groupby('inst'):
+            gg = g.dropna(subset=[col, stl_col])
+            if len(gg) == 0:
+                continue
+            d = gg.apply(lambda r_: nll(r_['y'], r_[stl_col]).mean() -
+                         nll(r_['y'], r_[col]).mean(), axis=1)
+            vals.append(d.mean())
+        return np.array(vals)
+
+    fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.2), gridspec_kw={'width_ratios': [1.4, 1]})
+    axA, axB = axes
+
+    xs = [0, 1, 2, 3]
+    groups = [('STL-8x', stl8x, 'p_stl8x'),
+              ('Standard\nMTL', c, 'p_mtl'),
+              ('Label-\npermuted', c, 'p_mtl_shuff'),
+              ('Pooled\n+ STL', pooled, 'p_mtl_pooled')]
+    for x, (tag, src, col) in zip(xs, groups):
+        d_all = split_means(src, col)
+        if len(d_all) == 0:
+            continue
+        axA.scatter(np.full(len(d_all), x), d_all, s=26, color='#4C72B0',
+                    alpha=0.75, zorder=2, edgecolors='white', linewidths=0.5)
+        axA.plot(x, d_all.mean(), 'o', ms=9, color='#C44E52', zorder=3)
+        axA.annotate(f'{d_all.mean():+.3f}', (x, d_all.mean()),
+                     xytext=(0, 9), textcoords='offset points', ha='center',
+                     fontsize=8.5, color='#C44E52')
+    axA.axhline(0, color='black', lw=0.8, ls='--')
+    axA.set_xticks(xs)
+    axA.set_xticklabels([g[0] for g in groups], fontsize=8)
+    axA.set_ylabel(r'$\Delta$NLL vs STL (positive favors config)')
+    axA.set_title('(A) Random-protocol controls (split-level)', fontsize=10)
+    axA.set_ylim(-0.25, 0.48)
+
+    r3 = v2[v2.inst.isin([0, 1, 2])]
+    c2 = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_v2_out/control_v2_di.parquet')
+    mr = c2.merge(r3[['inst', 'seed', 'endpoint', 'mol', 'y', 'p_stl', 'p_mtl']],
+                  on=['inst', 'seed', 'endpoint', 'mol', 'y'], how='left')
+    s3 = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_v2_out/b3_v2_scaffold_di.parquet')
+    s3 = s3[s3.inst.isin([0, 1, 2])]
+    sp = pd.read_parquet('/home/as/vllm/cell/idea-stage/b3_controls_scaffold_out/scaffold_permuted_di.parquet')
+    ms = sp.merge(s3[['inst', 'seed', 'endpoint', 'mol', 'y', 'p_stl', 'p_mtl']],
+                  on=['inst', 'seed', 'endpoint', 'mol', 'y'], how='left')
+
+    def gamma_per_split(df, model_col):
+        vals = []
+        for inst, g in df.groupby('inst'):
+            ep_vals = [nll(gg.y, gg.p_stl).mean() - nll(gg.y, gg[model_col]).mean()
+                       for ep, gg in g.groupby('endpoint')]
+            vals.append(np.mean(ep_vals))
+        return np.array(vals)
+
+    g_real = gamma_per_split(ms, 'p_mtl')
+    g_perm = gamma_per_split(ms, 'p_mtl_shuff')
+    # paired split-level values for real and permuted labels
+    for k in range(len(g_real)):
+        axB.plot([0, 1], [g_real[k], g_perm[k]], color='#999999', lw=0.9, alpha=0.8, zorder=1)
+    axB.scatter(np.zeros(len(g_real)), g_real, s=28, color='#4C72B0', zorder=3, edgecolors='white', linewidths=0.5)
+    axB.scatter(np.ones(len(g_perm)), g_perm, s=28, color='#4C72B0', zorder=3, edgecolors='white', linewidths=0.5)
+    for x, v in [(0, g_real.mean()), (1, g_perm.mean())]:
+        axB.plot(x, v, 'o', ms=9, color='#C44E52', zorder=4)
+        axB.annotate(f'{v:+.3f}', (x, v), xytext=(0, 9), textcoords='offset points',
+                     ha='center', fontsize=8.5, color='#C44E52')
+    axB.axhline(0, color='black', lw=0.8, ls='--')
+    axB.set_xticks([0, 1])
+    axB.set_xticklabels(['Real labels', 'Permuted labels'], fontsize=8)
+    axB.set_ylabel(r'$\Gamma$ (scaffold $-$ random)')
+    axB.set_title('(B) Interaction survives permutation (3 splits)', fontsize=10)
+    axB.set_ylim(0, 0.22)
+
     fig.tight_layout()
     fig.savefig(f'{FIG}/fig6_mechanism.pdf')
     plt.close(fig)
-    print('fig6_mechanism saved')
+    print('fig6_mechanism (split-level) saved')
 
 
 if __name__ == '__main__':
