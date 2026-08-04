@@ -8,3 +8,16 @@
 
 The contaminated development pass (per-endpoint splits + loss-scaling bug) is
 excluded from all confirmatory statistics and reported in Supporting Information S2.
+
+
+## 2026-08-04: checkpoint sensitivity training defect (sensitivity addendum)
+
+The earlier post hoc checkpoint-sensitivity script (b3_checkpoint_sens.py,
+three-instance scale) trained every MTL head on a single endpoint's task
+(`train_with_ckpt(tasks[0][0], tasks[0][1], ...)`), producing the negative
+absolute contrasts previously reported as "validation selection reverses the
+absolute contrast". The corrected five-instance analysis
+(b3_checkpoint_5split.py, frozen protocol/sensitivity_addendum_v1.md) trains
+each MTL head on its own endpoint's task and supersedes those numbers: the
+absolute contrast is attenuated but remains positive under all checkpoint
+rules, and the protocol interaction is positive under every rule.
