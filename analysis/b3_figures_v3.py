@@ -64,9 +64,9 @@ def fig1_framework():
     add(0.30, 0.35, 'Per-model temperature scaling\nstrongly attenuates\nproper-score contrasts', b_diag, key='D')
     add(0.30, 0.17, 'Gain persists after label\npermutation; not reproduced\nby compute-matched STL', b_diag, key='E')
 
-    # Dashed branches (right column)
+    # Dashed branches (right column, stacked without crossing the main chain)
     add(0.76, 0.72, 'Cross-architecture sensitivity:\nGIN directionally reproduces\nthe positive protocol interaction', b_diag, key='G', dashed=True)
-    add(0.76, 0.35, 'Secondary analyses:\nnovelty (flat) / downsampling /\npartition geometry / top-k decision', b_sec, fs=8, key='S', dashed=True)
+    add(0.76, 0.90, 'Secondary analyses:\nnovelty (flat) / downsampling /\npartition geometry / top-k decision', b_sec, fs=8, key='S', dashed=True)
 
     # Transparency record (bottom)
     add(0.30, 0.02, 'Development analyses excluded;\nconfirmatory plan frozen before rerun', b_sec, fs=8, key='T')
@@ -74,14 +74,14 @@ def fig1_framework():
     e = lambda k: ext[k]
     ax.text(0.30, ext['T'][3] + 0.015, 'Transparency record --- not used in confirmatory inference',
             ha='center', va='bottom', fontsize=7.5, color='#666666')
-    # main chain vertical arrows
-    arrow(0.30, e('A')[3] - 0.012, 0.30, e('B')[2] + 0.012)
-    arrow(0.30, e('B')[3] - 0.012, 0.30, e('C')[2] + 0.012)
-    arrow(0.30, e('C')[3] - 0.012, 0.30, e('D')[2] + 0.012)
-    arrow(0.30, e('D')[3] - 0.012, 0.30, e('E')[2] + 0.012)
-    # dashed branches from the raw finding and the main comparison
-    arrow(e('B')[1] + 0.012, 0.72, e('G')[0] - 0.012, 0.72, dashed=True)
-    arrow(e('A')[1] + 0.012, e('A')[3], e('S')[0] - 0.012, e('S')[2], dashed=True)
+    # main chain vertical arrows (start at box bottom [2], end at box top [3])
+    arrow(0.30, e('A')[2] - 0.012, 0.30, e('B')[3] + 0.012)
+    arrow(0.30, e('B')[2] - 0.012, 0.30, e('C')[3] + 0.012)
+    arrow(0.30, e('C')[2] - 0.012, 0.30, e('D')[3] + 0.012)
+    arrow(0.30, e('D')[2] - 0.012, 0.30, e('E')[3] + 0.012)
+    # dashed branches: horizontal, both start at box right edges, no crossing
+    arrow(e('B')[1] + 0.008, 0.72, e('G')[0] - 0.008, 0.72, dashed=True)
+    arrow(e('A')[1] + 0.008, 0.90, e('S')[0] - 0.008, 0.90, dashed=True)
 
     allx = [ext[k][0] for k in ext] + [ext[k][1] for k in ext]
     ally = [ext[k][2] for k in ext] + [ext[k][3] for k in ext]
@@ -290,17 +290,20 @@ def fig5_mechanism():
     axA, axB = axes
 
     xs = [0, 1, 2, 3]
-    groups = [('STL-8x', stl8x, 'p_stl8x'),
+    groups = [('STL-8$\\times$', stl8x, 'p_stl8x'),
               ('Standard\nMTL', c, 'p_mtl'),
               ('Label-\npermuted', c, 'p_mtl_shuff'),
-              ('Pooled\n+ STL', pooled, 'p_mtl_pooled')]
+              ('Pooled-pretrain\n+ STL', pooled, 'p_mtl_pooled')]
+    rng = np.random.RandomState(3)
     for x, (tag, src, col) in zip(xs, groups):
         d_all = split_means(src, col)
         if len(d_all) == 0:
             continue
-        axA.scatter(np.full(len(d_all), x), d_all, s=48, color='#4C72B0',
-                    alpha=0.9, zorder=2, edgecolors='white', linewidths=0.6)
-        axA.plot(x, d_all.mean(), 'o', ms=9, color='#C44E52', zorder=3)
+        jit = rng.uniform(-0.055, 0.055, len(d_all))
+        axA.scatter(x + jit, d_all, s=30, color='#4C72B0',
+                    alpha=0.85, zorder=2, edgecolors='white', linewidths=0.5)
+        axA.plot(x, d_all.mean(), marker='D', ms=12, color='#C44E52',
+                 markeredgecolor='black', markeredgewidth=0.7, zorder=3)
         axA.annotate(f'{d_all.mean():+.3f}', (x, d_all.mean()),
                      xytext=(0, 9), textcoords='offset points', ha='center',
                      fontsize=8.5, color='#C44E52')
@@ -338,15 +341,17 @@ def fig5_mechanism():
     g_real = gamma_per_split_pair(ms, mr, 'p_mtl')
     g_perm = gamma_per_split_pair(ms, mr, 'p_mtl_shuff')
     markers = ['o', 's', '^']
-    # paired split-level values for real and permuted labels
+    # paired split-level values: split identity shown by marker shape and
+    # connecting lines, one neutral color (no implied experiment-type distinction)
     for k in range(len(g_real)):
         axB.plot([0, 1], [g_real[k], g_perm[k]], color='#999999', lw=1.0, alpha=0.85, zorder=1)
-        axB.scatter(0, g_real[k], s=52, marker=markers[k % 3], color='#4C72B0',
-                    zorder=3, edgecolors='white', linewidths=0.6)
-        axB.scatter(1, g_perm[k], s=52, marker=markers[k % 3], color='#DD8452',
-                    zorder=3, edgecolors='white', linewidths=0.6)
-    for x, v, c in [(0, g_real.mean(), '#4C72B0'), (1, g_perm.mean(), '#DD8452')]:
-        axB.plot(x, v, marker='D', ms=11, color='#C44E52', zorder=4)
+        axB.scatter(0, g_real[k], s=46, marker=markers[k % 3], color='#4C72B0',
+                    zorder=3, edgecolors='white', linewidths=0.5)
+        axB.scatter(1, g_perm[k], s=46, marker=markers[k % 3], color='#4C72B0',
+                    zorder=3, edgecolors='white', linewidths=0.5)
+    for x, v in [(0, g_real.mean()), (1, g_perm.mean())]:
+        axB.plot(x, v, marker='D', ms=12, color='#C44E52',
+                 markeredgecolor='black', markeredgewidth=0.7, zorder=4)
         axB.annotate(f'{v:+.3f}', (x, v), xytext=(0, 11), textcoords='offset points',
                      ha='center', fontsize=9, color='#C44E52', fontweight='bold')
     axB.axhline(0, color='black', lw=0.8, ls='--')
