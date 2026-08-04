@@ -59,7 +59,7 @@ def fig1_framework():
 
     # Main evidential chain (vertical, left column)
     add(0.30, 0.90, 'Leakage-controlled\nMTL vs STL\n(8 TDC endpoints, 70/10/20)', b_main, key='A')
-    add(0.30, 0.72, 'Paired MTL--STL contrast\nlarger under scaffold-grouped\nevaluation', b_find, key='B')
+    add(0.30, 0.72, 'Paired MTL–STL contrast\nlarger under scaffold-grouped\nevaluation', b_find, key='B')
     add(0.30, 0.53, 'Checkpoint selection reverses\nthe absolute contrast;\nmean $\\Gamma$ remains positive', b_diag, key='C')
     add(0.30, 0.35, 'Per-model temperature scaling\nstrongly attenuates\nproper-score contrasts', b_diag, key='D')
     add(0.30, 0.17, 'Gain persists after label\npermutation; not reproduced\nby compute-matched STL', b_diag, key='E')
