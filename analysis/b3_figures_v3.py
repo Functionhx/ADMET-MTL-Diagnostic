@@ -72,16 +72,17 @@ def fig1_framework():
     add(0.30, 0.02, 'Development analyses excluded;\nconfirmatory plan frozen before rerun', b_sec, fs=8, key='T')
 
     e = lambda k: ext[k]
-    ax.text(0.30, ext['T'][3] + 0.015, 'Transparency record --- not used in confirmatory inference',
+    ax.text(0.30, ext['T'][3] + 0.015, 'Transparency record — not used in confirmatory inference',
             ha='center', va='bottom', fontsize=7.5, color='#666666')
     # main chain vertical arrows (start at box bottom [2], end at box top [3])
     arrow(0.30, e('A')[2] - 0.012, 0.30, e('B')[3] + 0.012)
     arrow(0.30, e('B')[2] - 0.012, 0.30, e('C')[3] + 0.012)
     arrow(0.30, e('C')[2] - 0.012, 0.30, e('D')[3] + 0.012)
     arrow(0.30, e('D')[2] - 0.012, 0.30, e('E')[3] + 0.012)
-    # dashed branches: horizontal, both start at box right edges, no crossing
-    arrow(e('B')[1] + 0.008, 0.72, e('G')[0] - 0.008, 0.72, dashed=True)
-    arrow(e('A')[1] + 0.008, 0.90, e('S')[0] - 0.008, 0.90, dashed=True)
+    # dashed branches: horizontal, starts tucked under the source box border,
+    # arrowhead tips at the target box border, no crossing
+    arrow(e('B')[1] - 0.004, 0.72, e('G')[0], 0.72, dashed=True)
+    arrow(e('A')[1] - 0.004, 0.90, e('S')[0], 0.90, dashed=True)
 
     allx = [ext[k][0] for k in ext] + [ext[k][1] for k in ext]
     ally = [ext[k][2] for k in ext] + [ext[k][3] for k in ext]
