@@ -26,21 +26,25 @@ plt.rcParams.update({'font.size': 9.5, 'axes.labelsize': 9.5, 'legend.fontsize':
 
 
 def fig1_framework():
-    """Horizontal causal chain: raw finding -> checkpoint -> calibration -> controls -> GIN,
-    with measured box extents so no text is clipped and arrows connect actual box edges."""
-    fig, ax = plt.subplots(figsize=(8.8, 3.6))
+    """Vertical main evidential chain with GIN and secondary analyses as
+    dashed independent branches; development history as transparency record.
+    Measured box extents: no clipping, arrows connect actual box edges."""
+    fig, ax = plt.subplots(figsize=(9.2, 5.0))
     ax.axis('off')
-    b_main = dict(boxstyle='round,pad=0.3', facecolor='#EAF0F6', edgecolor='#4C72B0', lw=1.2)
-    b_find = dict(boxstyle='round,pad=0.3', facecolor='#FDF3E7', edgecolor='#DD8452', lw=1.2)
-    b_diag = dict(boxstyle='round,pad=0.3', facecolor='#F0F7F0', edgecolor='#55A868', lw=1.2)
-    b_sec = dict(boxstyle='round,pad=0.3', facecolor='#F2F2F2', edgecolor='#AAAAAA', lw=0.9)
+    b_main = dict(boxstyle='round,pad=0.35', facecolor='#EAF0F6', edgecolor='#4C72B0', lw=1.3)
+    b_find = dict(boxstyle='round,pad=0.35', facecolor='#FDF3E7', edgecolor='#DD8452', lw=1.3)
+    b_diag = dict(boxstyle='round,pad=0.35', facecolor='#F0F7F0', edgecolor='#55A868', lw=1.3)
+    b_sec = dict(boxstyle='round,pad=0.35', facecolor='#F2F2F2', edgecolor='#AAAAAA', lw=1.0)
     fig.canvas.draw()
     rend = fig.canvas.get_renderer()
     inv = ax.transData.inverted()
     ext = {}
 
-    def add(x, y, text, style, fs=8.5, key=None):
-        t_ = ax.text(0, 0, text, ha='center', va='center', fontsize=fs, bbox=style)
+    def add(x, y, text, style, fs=8.5, key=None, dashed=False):
+        st = dict(style)
+        if dashed:
+            st['linestyle'] = '--'
+        t_ = ax.text(0, 0, text, ha='center', va='center', fontsize=fs, bbox=st)
         bb = t_.get_window_extent(renderer=rend)
         (x0, y0), (x1, y1) = inv.transform((bb.x0, bb.y0)), inv.transform((bb.x1, bb.y1))
         w, h = x1 - x0, y1 - y0
@@ -48,29 +52,36 @@ def fig1_framework():
         ext[key or text] = (x - w / 2, x + w / 2, y - h / 2, y + h / 2)
         return w, h
 
-    def arrow(x1, y1, x2, y2):
+    def arrow(x1, y1, x2, y2, dashed=False):
         ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle='-|>',
-                                     mutation_scale=11, color='#555555', lw=1.2))
+                                     mutation_scale=12, color='#555555', lw=1.2,
+                                     linestyle='--' if dashed else '-'))
 
-    # Main chain (top row, left to right)
-    add(0.13, 0.72, 'Leakage-controlled\nMTL vs STL\n(8 TDC endpoints, 70/10/20)', b_main, key='A')
-    add(0.50, 0.72, 'Raw finding:\nMTL gain larger\nunder scaffold split', b_find, key='B')
-    # Right column diagnostics (top to bottom)
-    add(0.87, 0.72, 'Checkpoint rule:\nvalidation-selected reverses\nabsolute contrast,\nmean Gamma positive', b_diag, key='C')
-    add(0.87, 0.34, 'Calibration:\nper-model T attenuates\nproper-score differences', b_diag, key='D')
-    add(0.87, -0.04, 'Label permutation +\nSTL-8x: gain survives\npermutation, not budget', b_diag, key='E')
-    add(0.50, -0.28, 'Cross-architecture:\nGIN directionally supportive', b_diag, fs=8, key='F')
-    # Secondary analyses (grey, bottom-left)
-    add(0.13, 0.12, 'Secondary analyses:\nnovelty (flat) / downsampling /\npartition geometry / top-k decision', b_sec, fs=7.5, key='G')
-    add(0.13, -0.12, 'Dev analyses excluded;\nplan frozen (protocol/)', b_sec, fs=7.5, key='H')
+    # Main evidential chain (vertical, left column)
+    add(0.30, 0.90, 'Leakage-controlled\nMTL vs STL\n(8 TDC endpoints, 70/10/20)', b_main, key='A')
+    add(0.30, 0.72, 'Paired MTL--STL contrast\nlarger under scaffold-grouped\nevaluation', b_find, key='B')
+    add(0.30, 0.53, 'Checkpoint selection reverses\nthe absolute contrast;\nmean $\\Gamma$ remains positive', b_diag, key='C')
+    add(0.30, 0.35, 'Per-model temperature scaling\nstrongly attenuates\nproper-score contrasts', b_diag, key='D')
+    add(0.30, 0.17, 'Gain persists after label\npermutation; not reproduced\nby compute-matched STL', b_diag, key='E')
 
-    # Arrows between measured box edges
+    # Dashed branches (right column)
+    add(0.76, 0.72, 'Cross-architecture sensitivity:\nGIN directionally reproduces\nthe positive protocol interaction', b_diag, key='G', dashed=True)
+    add(0.76, 0.35, 'Secondary analyses:\nnovelty (flat) / downsampling /\npartition geometry / top-k decision', b_sec, fs=8, key='S', dashed=True)
+
+    # Transparency record (bottom)
+    add(0.30, 0.02, 'Development analyses excluded;\nconfirmatory plan frozen before rerun', b_sec, fs=8, key='T')
+
     e = lambda k: ext[k]
-    arrow(e('A')[1] + 0.012, 0.72, e('B')[0] - 0.012, 0.72)
-    arrow(e('B')[1] + 0.012, 0.72, e('C')[0] - 0.012, 0.72)
-    arrow(0.87, e('C')[3] - 0.012, 0.87, e('D')[2] + 0.012)
-    arrow(0.87, e('D')[3] - 0.012, 0.87, e('E')[2] + 0.012)
-    arrow(e('E')[1] - 0.015, e('E')[3], e('F')[0] + 0.015, e('F')[2])
+    ax.text(0.30, ext['T'][3] + 0.015, 'Transparency record --- not used in confirmatory inference',
+            ha='center', va='bottom', fontsize=7.5, color='#666666')
+    # main chain vertical arrows
+    arrow(0.30, e('A')[3] - 0.012, 0.30, e('B')[2] + 0.012)
+    arrow(0.30, e('B')[3] - 0.012, 0.30, e('C')[2] + 0.012)
+    arrow(0.30, e('C')[3] - 0.012, 0.30, e('D')[2] + 0.012)
+    arrow(0.30, e('D')[3] - 0.012, 0.30, e('E')[2] + 0.012)
+    # dashed branches from the raw finding and the main comparison
+    arrow(e('B')[1] + 0.012, 0.72, e('G')[0] - 0.012, 0.72, dashed=True)
+    arrow(e('A')[1] + 0.012, e('A')[3], e('S')[0] - 0.012, e('S')[2], dashed=True)
 
     allx = [ext[k][0] for k in ext] + [ext[k][1] for k in ext]
     ally = [ext[k][2] for k in ext] + [ext[k][3] for k in ext]
@@ -79,7 +90,7 @@ def fig1_framework():
     fig.tight_layout()
     fig.savefig(f'{FIG}/fig1_framework.pdf')
     plt.close(fig)
-    print('fig1_framework (measured layout) saved')
+    print('fig1_framework (vertical chain + dashed branches) saved')
 
 
 def fig2_merged(r, s, ci_csv, ge_csv):
@@ -287,8 +298,8 @@ def fig5_mechanism():
         d_all = split_means(src, col)
         if len(d_all) == 0:
             continue
-        axA.scatter(np.full(len(d_all), x), d_all, s=26, color='#4C72B0',
-                    alpha=0.75, zorder=2, edgecolors='white', linewidths=0.5)
+        axA.scatter(np.full(len(d_all), x), d_all, s=48, color='#4C72B0',
+                    alpha=0.9, zorder=2, edgecolors='white', linewidths=0.6)
         axA.plot(x, d_all.mean(), 'o', ms=9, color='#C44E52', zorder=3)
         axA.annotate(f'{d_all.mean():+.3f}', (x, d_all.mean()),
                      xytext=(0, 9), textcoords='offset points', ha='center',
@@ -310,25 +321,34 @@ def fig5_mechanism():
     ms = sp.merge(s3[['inst', 'seed', 'endpoint', 'mol', 'y', 'p_stl', 'p_mtl']],
                   on=['inst', 'seed', 'endpoint', 'mol', 'y'], how='left')
 
-    def gamma_per_split(df, model_col):
+    def gamma_per_split_pair(df_scaf, df_rand, model_col):
+        """Per-split protocol contrast Gamma = (scaf split Delta) - (rand split Delta),
+        endpoint-macro within each split (seeds averaged within split)."""
         vals = []
-        for inst, g in df.groupby('inst'):
-            ep_vals = [nll(gg.y, gg.p_stl).mean() - nll(gg.y, gg[model_col]).mean()
-                       for ep, gg in g.groupby('endpoint')]
-            vals.append(np.mean(ep_vals))
+        for inst in sorted(df_rand.inst.unique()):
+            if inst not in df_scaf.inst.unique():
+                continue
+            gs = df_scaf[df_scaf.inst == inst].groupby('endpoint').apply(
+                lambda gg: nll(gg.y, gg.p_stl).mean() - nll(gg.y, gg[model_col]).mean())
+            gr = df_rand[df_rand.inst == inst].groupby('endpoint').apply(
+                lambda gg: nll(gg.y, gg.p_stl).mean() - nll(gg.y, gg[model_col]).mean())
+            vals.append((gs - gr).mean())
         return np.array(vals)
 
-    g_real = gamma_per_split(ms, 'p_mtl')
-    g_perm = gamma_per_split(ms, 'p_mtl_shuff')
+    g_real = gamma_per_split_pair(ms, mr, 'p_mtl')
+    g_perm = gamma_per_split_pair(ms, mr, 'p_mtl_shuff')
+    markers = ['o', 's', '^']
     # paired split-level values for real and permuted labels
     for k in range(len(g_real)):
-        axB.plot([0, 1], [g_real[k], g_perm[k]], color='#999999', lw=0.9, alpha=0.8, zorder=1)
-    axB.scatter(np.zeros(len(g_real)), g_real, s=28, color='#4C72B0', zorder=3, edgecolors='white', linewidths=0.5)
-    axB.scatter(np.ones(len(g_perm)), g_perm, s=28, color='#4C72B0', zorder=3, edgecolors='white', linewidths=0.5)
-    for x, v in [(0, g_real.mean()), (1, g_perm.mean())]:
-        axB.plot(x, v, 'o', ms=9, color='#C44E52', zorder=4)
-        axB.annotate(f'{v:+.3f}', (x, v), xytext=(0, 9), textcoords='offset points',
-                     ha='center', fontsize=8.5, color='#C44E52')
+        axB.plot([0, 1], [g_real[k], g_perm[k]], color='#999999', lw=1.0, alpha=0.85, zorder=1)
+        axB.scatter(0, g_real[k], s=52, marker=markers[k % 3], color='#4C72B0',
+                    zorder=3, edgecolors='white', linewidths=0.6)
+        axB.scatter(1, g_perm[k], s=52, marker=markers[k % 3], color='#DD8452',
+                    zorder=3, edgecolors='white', linewidths=0.6)
+    for x, v, c in [(0, g_real.mean(), '#4C72B0'), (1, g_perm.mean(), '#DD8452')]:
+        axB.plot(x, v, marker='D', ms=11, color='#C44E52', zorder=4)
+        axB.annotate(f'{v:+.3f}', (x, v), xytext=(0, 11), textcoords='offset points',
+                     ha='center', fontsize=9, color='#C44E52', fontweight='bold')
     axB.axhline(0, color='black', lw=0.8, ls='--')
     axB.set_xticks([0, 1])
     axB.set_xticklabels(['Real labels', 'Permuted labels'], fontsize=8)
